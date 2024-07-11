@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -23,6 +24,13 @@ class UserControllerTest {
         user.setEmail("user@email");
         user.setLogin("login");
         user.setBirthday(LocalDate.of(2000, 1, 1));
+    }
+
+    @Test
+    @DisplayName("Пользователи должны быть одинаковые")
+    void shouldBeEqualUsers() {
+        controller.create(user);
+        assertEquals(user, controller.findAll().toArray()[0]);
     }
 
     @Test

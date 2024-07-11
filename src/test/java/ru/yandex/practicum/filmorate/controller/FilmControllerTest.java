@@ -25,6 +25,13 @@ class FilmControllerTest {
     }
 
     @Test
+    @DisplayName("Фильмы должны быть одинаковые")
+    void shouldBeEqualFilms() {
+        filmController.create(film);
+        assertEquals(film, filmController.findAll().toArray()[0]);
+    }
+
+    @Test
     @DisplayName("Должно выпасть исключение об отсутствии имени")
     void shouldBeExceptionOfTitle() {
         film.setName("");
