@@ -65,7 +65,7 @@ public class UserService {
         }
         Collection<User> users = null;
         for (Integer i : user.get().getFriends()) {
-            Optional <User> u = storage.getById(i);
+            Optional<User> u = storage.getById(i);
             if (u.isEmpty()) {
                 throw new NullPointerException("один из друзей == null");
             }
