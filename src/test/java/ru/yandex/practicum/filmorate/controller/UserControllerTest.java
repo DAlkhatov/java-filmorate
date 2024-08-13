@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -18,7 +19,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new UserController();
+        controller = new UserController(new InMemoryUserStorage());
         user = new User();
         user.setName("name");
         user.setEmail("user@email");

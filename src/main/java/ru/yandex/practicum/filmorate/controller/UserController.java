@@ -1,69 +1,80 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    private final Map<Integer, User> users = new HashMap<>();
+    private final InMemoryUserStorage userStorage;
+    private final UserService service;
+
+    public UserController(InMemoryUserStorage userStorage) {
+        this.userStorage = userStorage;
+        service = new UserService(userStorage);
+    }
 
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public Collection<User> findAll() {
-        return users.values();
+        return userStorage.getUsers();
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Optional<User> getById(@PathVariable int id) {
+        return userStorage.getById(id);
+    }
+
+    @GetMapping("/users/{id}/friends")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<User> getFriends(@PathVariable int id) {
+        return service.getFriends(id);
+    }
+
+    @GetMapping("{id}/friends/common/{otherId}")
+    @ResponseStatus(HttpStatus.OK)
+    public Set<Integer> getMutualFriends(@PathVariable int id, @PathVariable int otherId) {
+        return service.getMutualFriends(id, otherId);
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody User user) {
-        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
-            throw new ConditionsNotMetException("Электронная почта не может быть пустой и должна содержать символ @");
-        }
-        if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
-            throw new ConditionsNotMetException("Логин не может быть пустым и содержать пробелы");
-        }
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        } else if (user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ConditionsNotMetException("Дата рождения не может быть в будущем");
-        }
-        Integer userid = getNextId();
-        user.setId(userid);
-        users.put(userid, user);
-        log.info("Пользователь {} создан", user);
-        return user;
+        return userStorage.createUser(user);
     }
 
     @PutMapping
+    @ResponseStatus(HttpStatus.OK)
     public User update(@RequestBody User newUser) {
-        if (newUser.getId() == null) {
-            throw new ConditionsNotMetException("Id должен быть указан");
-        }
-        User oldUser = users.get(newUser.getId());
-        if (newUser.getLogin().isEmpty()) newUser.setLogin(oldUser.getLogin());
-        if (newUser.getName().isEmpty()) newUser.setName(oldUser.getName());
-        users.put(oldUser.getId(), newUser);
-        log.info("Пользователь {} заменен на {}", oldUser, newUser);
-        return newUser;
+        return userStorage.updateUser(newUser);
     }
 
-    private int getNextId() {
-        int currentMaxId = users.keySet()
-                .stream()
-                .mapToInt(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @PutMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void addToFriends(@PathVariable int id, @PathVariable int friendId) {
+        service.addToFriend(id, friendId);
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.OK)
+    public User delete(@RequestBody User user) {
+        return userStorage.deleteUser(user);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteFromFriends(@PathVariable int id, @PathVariable int friendId) {
+        service.deleteFromFriends(id, friendId);
     }
 }
