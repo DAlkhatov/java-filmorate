@@ -7,12 +7,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 /**
  * Film.
  */
 @Data
-public class Film {
+public class Film implements Comparable<Film> {
     private Integer id;
     @NotBlank
     private String name;
@@ -22,4 +23,11 @@ public class Film {
     private LocalDate releaseDate;
     @Positive
     private int duration;
+    private Set<Integer> likes;
+
+    @Override
+    public int compareTo(Film film) {
+        return likes.size() - film.getLikes().size();
+    }
 }
+
